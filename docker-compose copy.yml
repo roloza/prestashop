@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+
+  webserver:
+    build: 
+      context: ./bin/webserver
+    container_name: 'webserver'
+    restart: 'always'
+    ports:
+      - "80:80"
+    links: 
+      - db
+    volumes: 
+      - ${DOCUMENT_ROOT-./www}:/var/www/html
+      - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+      - ${VHOSTS_DIR-./config/vhosts}:/etc/apache2/sites-enabled
+      - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes:
+      - ./db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: rta
+      MYSQL_USER: rlozach
+      MYSQL_PASSWORD: infopro
+
+  phpmyadmin:
+    depends_on:
+      - db
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - "81:80"
+    restart: always
+    environment:
+      PMA_HOST: db:3306
+      PMA_USER: rlozach
+      PMA_PASSWORD: infopro      
